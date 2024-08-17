@@ -2,73 +2,57 @@ let boardSize = 3;
 let currentPlayer = 'X';
 let gameBoard = [];
 let isGameOver = false;
-let difficulty = 'easy';
 
-const themeToggleButton = document.getElementById('theme-toggle');
-const difficultySelect = document.getElementById('difficulty');
-const sizeSelect = document.getElementById('size');
 const boardElement = document.getElementById('game-board');
 const messageElement = document.getElementById('message');
-
-themeToggleButton.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-});
-
-difficultySelect.addEventListener('change', (event) => {
-    difficulty = event.target.value;
-});
-
-sizeSelect.addEventListener('change', (event) => {
-    boardSize = parseInt(event.target.value);
-    resetGame();
-});
+const playAgainButton = document.getElementById('play-again');
+const bgElement = document.querySelector('.bg');
 
 function initBoard() {
     gameBoard = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
-    boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
     boardElement.innerHTML = '';
-    for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            cell.addEventListener('click', () => handleCellClick(i, j));
-            boardElement.appendChild(cell);
-        }
+    for (let i = 0; i < boardSize * boardSize; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'box align';
+        cell.dataset.index = i;
+        cell.addEventListener('click', () => handleCellClick(i));
+        boardElement.appendChild(cell);
     }
 }
 
-function handleCellClick(row, col) {
+function handleCellClick(index) {
+    const row = Math.floor(index / boardSize);
+    const col = index % boardSize;
+
     if (isGameOver || gameBoard[row][col]) return;
 
     gameBoard[row][col] = currentPlayer;
     updateBoard();
 
     if (checkWin(row, col)) {
-        messageElement.textContent = `Player ${currentPlayer} wins!`;
+        messageElement.textContent = `${currentPlayer} wins!`;
         isGameOver = true;
+        playAgainButton.style.display = 'inline';
         return;
     }
 
     if (checkDraw()) {
-        messageElement.textContent = 'It\'s a draw!';
+        messageElement.textContent = "It's a draw!";
         isGameOver = true;
+        playAgainButton.style.display = 'inline';
         return;
     }
 
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    if (currentPlayer === 'O' && !isGameOver) {
-        aiMove();
-    }
+    bgElement.style.left = currentPlayer === 'O' ? '85px' : '0';
 }
 
 function updateBoard() {
-    const cells = boardElement.querySelectorAll('.cell');
-    cells.forEach(cell => {
-        const row = cell.dataset.row;
-        const col = cell.dataset.col;
-        cell.textContent = gameBoard[row][col];
+    const cells = boardElement.querySelectorAll('.box');
+    cells.forEach((cell, index) => {
+        const row = Math.floor(index / boardSize);
+        const col = index % boardSize;
+        cell.textContent = gameBoard[row][col] || '';
     });
 }
 
@@ -87,58 +71,13 @@ function checkDraw() {
     return gameBoard.flat().every(cell => cell);
 }
 
-function aiMove() {
-    let move = getBestMove();
-    if (move) {
-        handleCellClick(move.row, move.col);
-    }
-}
-
-function getBestMove() {
-    let bestMove;
-    switch (difficulty) {
-        case 'easy':
-            bestMove = getRandomMove();
-            break;
-        case 'medium':
-            bestMove = getMediumMove();
-            break;
-        case 'hard':
-            bestMove = getHardMove();
-            break;
-    }
-    return bestMove;
-}
-
-function getRandomMove() {
-    const emptyCells = [];
-    for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-            if (!gameBoard[i][j]) {
-                emptyCells.push({ row: i, col: j });
-            }
-        }
-    }
-    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-}
-
-function getMediumMove() {
-    // Simple medium AI strategy
-    // TODO: Improve this
-    return getRandomMove();
-}
-
-function getHardMove() {
-    // Implement a more sophisticated AI
-    // TODO: Implement Minimax algorithm for better AI
-    return getRandomMove();
-}
-
-function resetGame() {
-    currentPlayer = 'X';
+playAgainButton.addEventListener('click', () => {
     isGameOver = false;
+    currentPlayer = 'X';
+    bgElement.style.left = '0';
     messageElement.textContent = '';
+    playAgainButton.style.display = 'none';
     initBoard();
-}
+});
 
 initBoard();
