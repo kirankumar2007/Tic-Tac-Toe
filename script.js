@@ -344,4 +344,65 @@ restartButton.addEventListener('click', () => {
     startTimer();
 });
 
+// WebSocket setup for multiplayer mode
+let socket = new WebSocket("wss://example.com/socketserver");
+
+socket.onopen = function() {
+    console.log("Connection established");
+};
+
+socket.onmessage = function(event) {
+    let receivedMove = JSON.parse(event.data);
+    makeMove(receivedMove.index);
+};
+
+// Send move to opponent in multiplayer mode
+function sendMove(index) {
+    socket.send(JSON.stringify({ index: index, player: currentPlayer }));
+}
+
+// Enhanced AI with dynamic difficulty adjustment
+function dynamicAIDifficulty() {
+    let winRate = scores[currentPlayer] / (scores['X'] + scores['O']);
+    if (winRate > 0.7) return 'hard';
+    if (winRate > 0.4) return 'medium';
+    return 'easy';
+}
+
+// Function to handle custom board sizes
+function setCustomBoardSize(size) {
+    boardSize = size;
+    generateWinningCombinations();
+    startGame();
+}
+
+// Add animations
+function animateMove(cell) {
+    cell.classList.add('animate-move');
+}
+
+// Game statistics
+let gameStats = {
+    totalGames: 0,
+    playerXWins: 0,
+    playerOWins: 0,
+    draws: 0
+};
+
+function updateGameStats(winner) {
+    gameStats.totalGames++;
+    if (winner === 'X') gameStats.playerXWins++;
+    if (winner === 'O') gameStats.playerOWins++;
+    if (!winner) gameStats.draws++;
+    displayGameStats();
+}
+
+function displayGameStats() {
+    document.getElementById('totalGames').textContent = gameStats.totalGames;
+    document.getElementById('playerXWins').textContent = gameStats.playerXWins;
+    document.getElementById('playerOWins').textContent = gameStats.playerOWins;
+    document.getElementById('draws').textContent = gameStats.draws;
+}
+
+
 initializeGameV2();

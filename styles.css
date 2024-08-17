@@ -186,3 +186,19 @@ body.theme-dark {
 .theme-select {
     margin-bottom: 20px;
 }
+/* Animations */
+@keyframes move {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.cell.animate-move {
+    animation: move 0.3s ease-out;
+}
+
+/* Game statistics styling */
+.game-stats {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 1em;
+}
