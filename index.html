@@ -7,90 +7,47 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Tic Tac Toe</h1>
-        <div class="game-options">
-            <div class="player-select">
-                <label for="playerX">Player X:</label>
-                <select id="playerX">
-                    <option value="human">Human</option>
-                    <option value="ai">AI</option>
-                </select>
-                <input type="text" id="playerXName" placeholder="Player X Name" value="Player X">
-            </div>
-            <div class="player-select">
-                <label for="playerO">Player O:</label>
-                <select id="playerO">
-                    <option value="human">Human</option>
-                    <option value="ai" selected>AI</option>
-                </select>
-                <input type="text" id="playerOName" placeholder="Player O Name" value="Player O">
-            </div>
-            <div class="ai-difficulty">
-                <label for="aiDifficulty">AI Difficulty:</label>
-                <select id="aiDifficulty">
-                    <option value="easy">Easy</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
-            </div>
-        </div>
-        <div class="theme-select">
-            <label for="themeSelect">Select Theme:</label>
-            <select id="themeSelect">
-                <option value="theme-light">Light</option>
-                <option value="theme-dark">Dark</option>
-            </select>
-        </div>
-        <div id="gameTimer"></div>
-        <div id="leaderboard" class="leaderboard"></div>
-        
-        <div class="board-size-select">
-            <label for="boardSize">Board Size:</label>
-            <select id="boardSize">
-                <option value="3">3x3</option>
-                <option value="4">4x4</option>
-                <option value="5">5x5</option>
-            </select>
-        </div>
-        <div id="board" class="board"></div>
-        <div id="message"></div>
-        <div class="score">
-            <span>X: <span id="scoreX">0</span></span>
-            <span>O: <span id="scoreO">0</span></span>
-        </div>
-        <div class="buttons">
-            <button id="restartButton">Restart Game</button>
-            <button id="undoButton">Undo Move</button>
-        </div>
-        <div id="gameHistory"></div>
-        <div class="game-stats">
-            <p>Total Games: <span id="totalGames">0</span></p>
-            <p>Player X Wins: <span id="playerXWins">0</span></p>
-            <p>Player O Wins: <span id="playerOWins">0</span></p>
-            <p>Draws: <span id="draws">0</span></p>
-        </div>
-        <div class="chat-system">
-            <div id="chatBox" class="chat-box"></div>
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-        <div class="avatar-selection">
-            <label for="avatarX">Player X Avatar:</label>
-            <input type="file" id="avatarXInput" onchange="uploadAvatar('X', this)">
-            <img id="avatarX" src="defaultX.png" alt="Player X Avatar">
-        </div>
-        <div class="avatar-selection">
-            <label for="avatarO">Player O Avatar:</label>
-            <input type="file" id="avatarOInput" onchange="uploadAvatar('O', this)">
-            <img id="avatarO" src="defaultO.png" alt="Player O Avatar">
-        </div>
-        <button onclick="exportGameHistory()">Export Game History</button>
-        
-
+    <h1>Tic Tac Toe</h1>
+    
+    <div class="game-settings">
+        <label for="playerX">Player X:</label>
+        <select id="playerX">
+            <option value="Human">Human</option>
+            <option value="AI">AI</option>
+        </select>
+        <label for="playerO">Player O:</label>
+        <select id="playerO">
+            <option value="Human">Human</option>
+            <option value="AI">AI</option>
+        </select>
+        <label for="difficulty">AI Difficulty:</label>
+        <select id="difficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <label for="theme">Select Theme:</label>
+        <select id="theme">
+            <option value="Light">Light</option>
+            <option value="Dark">Dark</option>
+        </select>
+        <label for="boardSize">Board Size:</label>
+        <select id="boardSize">
+            <option value="3x3">3x3</option>
+            <option value="4x4">4x4</option>
+            <option value="5x5">5x5</option>
+        </select>
     </div>
-    
-    
+
+    <div id="board" class="board"></div>
+
+    <div class="game-info">
+        <button id="restartBtn">Restart Game</button>
+        <button id="undoBtn">Undo Move</button>
+        <p id="gameStatus">Player X's turn</p>
+        <p id="scoreboard">X: 0 | O: 0</p>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

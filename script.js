@@ -1,490 +1,93 @@
-const board = document.getElementById('board');
-const cells = document.querySelectorAll('[data-cell]');
-const message = document.getElementById('message');
-const restartButton = document.getElementById('restartButton');
-const undoButton = document.getElementById('undoButton');
-const scoreX = document.getElementById('scoreX');
-const scoreO = document.getElementById('scoreO');
-const playerXSelect = document.getElementById('playerX');
-const playerOSelect = document.getElementById('playerO');
-const playerXName = document.getElementById('playerXName');
-const playerOName = document.getElementById('playerOName');
-const aiDifficultySelect = document.getElementById('aiDifficulty');
-const boardSizeSelect = document.getElementById('boardSize');
-const gameHistory = document.getElementById('gameHistory');
+document.addEventListener('DOMContentLoaded', () => {
+    const board = document.getElementById('board');
+    const gameStatus = document.getElementById('gameStatus');
+    const scoreboard = document.getElementById('scoreboard');
+    const restartBtn = document.getElementById('restartBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    let boardSize = 3; // Default 3x3 board
+    let currentPlayer = 'X';
+    let gameActive = true;
+    let gameHistory = [];
+    let scores = { X: 0, O: 0 };
 
-let currentPlayer = 'X';
-let gameActive = false;
-let scores = { X: 0, O: 0 };
-let moveHistory = [];
-let boardState = [];
-let boardSize = 3;
-let winningCombinations = [];
-
-function startGame() {
-    gameActive = true;
-    currentPlayer = 'X';
-    moveHistory = [];
-    boardState = Array(boardSize * boardSize).fill('');
-    updateBoard();
-    message.textContent = '';
-    if (isAITurn()) {
-        setTimeout(makeAIMove, 500);
-    }
-    updateGameHistory('Game started');
-}
-
-function updateBoard() {
-    board.innerHTML = '';
-    board.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
-    for (let i = 0; i < boardSize * boardSize; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.dataset.index = i;
-        cell.addEventListener('click', handleCellClick);
-        board.appendChild(cell);
-        if (boardState[i]) {
-            cell.classList.add(boardState[i].toLowerCase());
+    function initializeBoard() {
+        board.innerHTML = '';
+        board.style.gridTemplateColumns = `repeat(${boardSize}, 100px)`;
+        board.style.gridTemplateRows = `repeat(${boardSize}, 100px)`;
+        for (let i = 0; i < boardSize * boardSize; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('click', handleCellClick);
+            board.appendChild(cell);
         }
     }
-}
 
-function handleCellClick(e) {
-    const cell = e.target;
-    const index = parseInt(cell.dataset.index);
-    if (boardState[index] || !gameActive || isAITurn()) return;
+    function handleCellClick(event) {
+        const cell = event.target;
+        if (!gameActive || cell.textContent !== '') return;
+        
+        cell.textContent = currentPlayer;
+        cell.classList.add(currentPlayer.toLowerCase());
+        
+        gameHistory.push({ cellIndex: [...board.children].indexOf(cell), player: currentPlayer });
 
-    makeMove(index);
-    if (gameActive && isAITurn()) {
-        setTimeout(makeAIMove, 500);
-    }
-}
-
-function makeMove(index) {
-    boardState[index] = currentPlayer;
-    moveHistory.push(index);
-    updateBoard();
-    if (checkWin()) {
-        endGame(false);
-    } else if (checkDraw()) {
-        endGame(true);
-    } else {
-        switchPlayer();
-    }
-    updateGameHistory(`${getCurrentPlayerName()} placed ${currentPlayer} at position ${index}`);
-}
-
-function getCurrentPlayerName() {
-    return currentPlayer === 'X' ? playerXName.value : playerOName.value;
-}
-
-function switchPlayer() {
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-}
-
-function isAITurn() {
-    return (currentPlayer === 'X' && playerXSelect.value === 'ai') ||
-           (currentPlayer === 'O' && playerOSelect.value === 'ai');
-}
-
-function makeAIMove() {
-    if (!gameActive) return;
-    
-    const availableMoves = boardState.map((cell, index) => cell === '' ? index : null).filter(cell => cell !== null);
-    let bestMove;
-
-    switch (aiDifficultySelect.value) {
-        case 'easy':
-            bestMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-            break;
-        case 'medium':
-            bestMove = Math.random() < 0.5 ? findBestMove() : availableMoves[Math.floor(Math.random() * availableMoves.length)];
-            break;
-        case 'hard':
-            bestMove = findBestMove();
-            break;
-    }
-
-    makeMove(bestMove);
-}
-
-function findBestMove() {
-    let bestScore = -Infinity;
-    let bestMove;
-    
-    for (let i = 0; i < boardState.length; i++) {
-        if (boardState[i] === '') {
-            boardState[i] = currentPlayer;
-            let score = minimax(boardState, 0, false);
-            boardState[i] = '';
-            if (score > bestScore) {
-                bestScore = score;
-                bestMove = i;
-            }
-        }
-    }
-    
-    return bestMove;
-}
-
-function minimax(board, depth, isMaximizing) {
-    if (checkWin()) return isMaximizing ? -1 : 1;
-    if (checkDraw()) return 0;
-
-    if (isMaximizing) {
-        let bestScore = -Infinity;
-        for (let i = 0; i < board.length; i++) {
-            if (board[i] === '') {
-                board[i] = currentPlayer;
-                let score = minimax(board, depth + 1, false);
-                board[i] = '';
-                bestScore = Math.max(score, bestScore);
-            }
-        }
-        return bestScore;
-    } else {
-        let bestScore = Infinity;
-        for (let i = 0; i < board.length; i++) {
-            if (board[i] === '') {
-                board[i] = currentPlayer === 'X' ? 'O' : 'X';
-                let score = minimax(board, depth + 1, true);
-                board[i] = '';
-                bestScore = Math.min(score, bestScore);
-            }
-        }
-        return bestScore;
-    }
-}
-
-function checkWin() {
-    return winningCombinations.some(combination => {
-        return combination.every(index => {
-            return boardState[index] === currentPlayer;
-        });
-    });
-}
-
-function checkDraw() {
-    return boardState.every(cell => cell !== '');
-}
-
-function endGame(draw) {
-    gameActive = false;
-    if (draw) {
-        message.textContent = "It's a draw!";
-        updateGameHistory("Game ended in a draw");
-    } else {
-        message.textContent = `${getCurrentPlayerName()} wins!`;
-        updateGameHistory(`${getCurrentPlayerName()} won the game`);
-        highlightWinningCells();
-        updateScore();
-    }
-}
-
-function highlightWinningCells() {
-    winningCombinations.forEach(combination => {
-        if (combination.every(index => boardState[index] === currentPlayer)) {
-            combination.forEach(index => {
-                board.children[index].classList.add('win');
-            });
-        }
-    });
-}
-
-function updateScore() {
-    scores[currentPlayer]++;
-    scoreX.textContent = scores['X'];
-    scoreO.textContent = scores['O'];
-}
-
-function undoMove() {
-    if (moveHistory.length > 0) {
-        const lastMove = moveHistory.pop();
-        boardState[lastMove] = '';
-        switchPlayer();
-        updateBoard();
-        updateGameHistory(`Undid last move`);
-        if (isAITurn()) {
-            undoMove(); // Undo AI's move as well
-        }
-    }
-}
-
-function updateGameHistory(message) {
-    const historyEntry = document.createElement('div');
-    historyEntry.textContent = message;
-    gameHistory.prepend(historyEntry);
-}
-
-function generateWinningCombinations() {
-    winningCombinations = [];
-
-    // Rows
-    for (let i = 0; i < boardSize; i++) {
-        winningCombinations.push(Array.from({length: boardSize}, (_, j) => i * boardSize + j));
-    }
-
-    // Columns
-    for (let i = 0; i < boardSize; i++) {
-        winningCombinations.push(Array.from({length: boardSize}, (_, j) => j * boardSize + i));
-    }
-
-    // Diagonals
-    winningCombinations.push(Array.from({length: boardSize}, (_, i) => i * boardSize + i));
-    winningCombinations.push(Array.from({length: boardSize}, (_, i) => (i + 1) * boardSize - (i + 1)));
-}
-
-function restartGame() {
-    startGame();
-    updateGameHistory('Game restarted');
-}
-
-function initializeGame() {
-    boardSize = parseInt(boardSizeSelect.value);
-    generateWinningCombinations();
-    startGame();
-}
-
-restartButton.addEventListener('click', restartGame);
-undoButton.addEventListener('click', undoMove);
-boardSizeSelect.addEventListener('change', initializeGame);
-aiDifficultySelect.addEventListener('change', initializeGame);
-
-playerXSelect.addEventListener('change', () => {
-    if (isAITurn()) {
-        makeAIMove();
-    }
-});
-
-playerOSelect.addEventListener('change', () => {
-    if (isAITurn()) {
-        makeAIMove();
-    }
-});
-
-initializeGame();
-
-const themeSelect = document.getElementById('themeSelect');
-const gameTimer = document.getElementById('gameTimer');
-let timerInterval;
-let gameDuration = 0;
-
-function startTimer() {
-    gameDuration = 0;
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        gameDuration++;
-        gameTimer.textContent = `Time: ${gameDuration}s`;
-    }, 1000);
-}
-
-function stopTimer() {
-    clearInterval(timerInterval);
-}
-
-function applyTheme() {
-    const theme = themeSelect.value;
-    document.body.className = theme;
-}
-
-function addSoundEffects() {
-    const moveSound = new Audio('move.mp3');
-    const winSound = new Audio('win.mp3');
-    const drawSound = new Audio('draw.mp3');
-
-    function playMoveSound() {
-        moveSound.play();
-    }
-
-    function playWinSound() {
-        winSound.play();
-    }
-
-    function playDrawSound() {
-        drawSound.play();
-    }
-
-    cells.forEach(cell => {
-        cell.addEventListener('click', playMoveSound);
-    });
-
-    function endGameWithSound(draw) {
-        stopTimer();
-        if (draw) {
-            playDrawSound();
+        if (checkWin()) {
+            gameStatus.textContent = `Player ${currentPlayer} wins!`;
+            scores[currentPlayer]++;
+            scoreboard.textContent = `X: ${scores.X} | O: ${scores.O}`;
+            gameActive = false;
+        } else if (gameHistory.length === boardSize * boardSize) {
+            gameStatus.textContent = "It's a draw!";
+            gameActive = false;
         } else {
-            playWinSound();
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            gameStatus.textContent = `Player ${currentPlayer}'s turn`;
         }
-        endGame(draw);
     }
 
-    // Override the original endGame function with the new one that includes sound
-    window.endGame = endGameWithSound;
-}
+    function checkWin() {
+        const winPatterns = [];
 
-function updateLeaderboard() {
-    const leaderboard = document.getElementById('leaderboard');
-    leaderboard.innerHTML = `
-        <p>${playerXName.value || 'Player X'} Wins: ${scores['X']}</p>
-        <p>${playerOName.value || 'Player O'} Wins: ${scores['O']}</p>
-    `;
-}
+        // Rows
+        for (let i = 0; i < boardSize; i++) {
+            winPatterns.push([...Array(boardSize).keys()].map(j => i * boardSize + j));
+        }
 
-function initializeGameV2() {
-    initializeGame();
-    applyTheme();
-    startTimer();
-    addSoundEffects();
-}
+        // Columns
+        for (let i = 0; i < boardSize; i++) {
+            winPatterns.push([...Array(boardSize).keys()].map(j => i + j * boardSize));
+        }
 
-themeSelect.addEventListener('change', applyTheme);
-restartButton.addEventListener('click', () => {
-    restartGame();
-    updateLeaderboard();
-    startTimer();
+        // Diagonals
+        winPatterns.push([...Array(boardSize).keys()].map(i => i * (boardSize + 1)));
+        winPatterns.push([...Array(boardSize).keys()].map(i => (i + 1) * (boardSize - 1)));
+
+        return winPatterns.some(pattern =>
+            pattern.every(index => board.children[index].textContent === currentPlayer)
+        );
+    }
+
+    function restartGame() {
+        currentPlayer = 'X';
+        gameActive = true;
+        gameHistory = [];
+        gameStatus.textContent = `Player ${currentPlayer}'s turn`;
+        initializeBoard();
+    }
+
+    function undoMove() {
+        if (gameHistory.length === 0 || !gameActive) return;
+        const lastMove = gameHistory.pop();
+        const lastCell = board.children[lastMove.cellIndex];
+        lastCell.textContent = '';
+        lastCell.classList.remove('x', 'o');
+        currentPlayer = lastMove.player;
+        gameStatus.textContent = `Player ${currentPlayer}'s turn`;
+    }
+
+    restartBtn.addEventListener('click', restartGame);
+    undoBtn.addEventListener('click', undoMove);
+
+    // Initialize the game board
+    initializeBoard();
 });
-
-// WebSocket setup for multiplayer mode
-let socket = new WebSocket("wss://example.com/socketserver");
-
-socket.onopen = function() {
-    console.log("Connection established");
-};
-
-socket.onmessage = function(event) {
-    let receivedMove = JSON.parse(event.data);
-    makeMove(receivedMove.index);
-};
-
-// Send move to opponent in multiplayer mode
-function sendMove(index) {
-    socket.send(JSON.stringify({ index: index, player: currentPlayer }));
-}
-
-// Enhanced AI with dynamic difficulty adjustment
-function dynamicAIDifficulty() {
-    let winRate = scores[currentPlayer] / (scores['X'] + scores['O']);
-    if (winRate > 0.7) return 'hard';
-    if (winRate > 0.4) return 'medium';
-    return 'easy';
-}
-
-// Function to handle custom board sizes
-function setCustomBoardSize(size) {
-    boardSize = size;
-    generateWinningCombinations();
-    startGame();
-}
-
-// Add animations
-function animateMove(cell) {
-    cell.classList.add('animate-move');
-}
-
-// Game statistics
-let gameStats = {
-    totalGames: 0,
-    playerXWins: 0,
-    playerOWins: 0,
-    draws: 0
-};
-
-function updateGameStats(winner) {
-    gameStats.totalGames++;
-    if (winner === 'X') gameStats.playerXWins++;
-    if (winner === 'O') gameStats.playerOWins++;
-    if (!winner) gameStats.draws++;
-    displayGameStats();
-}
-
-function displayGameStats() {
-    document.getElementById('totalGames').textContent = gameStats.totalGames;
-    document.getElementById('playerXWins').textContent = gameStats.playerXWins;
-    document.getElementById('playerOWins').textContent = gameStats.playerOWins;
-    document.getElementById('draws').textContent = gameStats.draws;
-}
-// Chat system for multiplayer mode
-function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value;
-    socket.send(JSON.stringify({ type: 'chat', message: message, player: currentPlayer }));
-    displayChatMessage(`${getCurrentPlayerName()}: ${message}`);
-    messageInput.value = '';
-}
-
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    if (data.type === 'chat') {
-        displayChatMessage(`${data.player}: ${data.message}`);
-    } else if (data.type === 'move') {
-        makeMove(data.index);
-    }
-};
-
-function displayChatMessage(message) {
-    const chatBox = document.getElementById('chatBox');
-    const messageElement = document.createElement('div');
-    messageElement.textContent = message;
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Customizable avatars
-const avatars = { X: 'defaultX.png', O: 'defaultO.png' };
-
-function setAvatar(player, avatarUrl) {
-    avatars[player] = avatarUrl;
-    document.getElementById(`avatar${player}`).src = avatarUrl;
-}
-
-// Move validation with confirmation
-function makeMove(index) {
-    if (criticalMove(index) && !confirm('Are you sure you want to make this move?')) return;
-    boardState[index] = currentPlayer;
-    moveHistory.push(index);
-    updateBoard();
-    if (checkWin()) {
-        endGame(false);
-    } else if (checkDraw()) {
-        endGame(true);
-    } else {
-        switchPlayer();
-    }
-    updateGameHistory(`${getCurrentPlayerName()} placed ${currentPlayer} at position ${index}`);
-}
-
-function criticalMove(index) {
-    return winningCombinations.some(combination => combination.includes(index));
-}
-
-// Game history export
-function exportGameHistory() {
-    const historyText = Array.from(gameHistory.children).map(entry => entry.textContent).join('\n');
-    const blob = new Blob([historyText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'game_history.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// In-game notifications
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.classList.add('notification');
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
-
-socket.onopen = function() {
-    showNotification("Player joined the game");
-};
-
-socket.onclose = function() {
-    showNotification("Player left the game");
-};
-
-
-initializeGameV2();
