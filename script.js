@@ -263,3 +263,85 @@ playerOSelect.addEventListener('change', () => {
 });
 
 initializeGame();
+
+const themeSelect = document.getElementById('themeSelect');
+const gameTimer = document.getElementById('gameTimer');
+let timerInterval;
+let gameDuration = 0;
+
+function startTimer() {
+    gameDuration = 0;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        gameDuration++;
+        gameTimer.textContent = `Time: ${gameDuration}s`;
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+function applyTheme() {
+    const theme = themeSelect.value;
+    document.body.className = theme;
+}
+
+function addSoundEffects() {
+    const moveSound = new Audio('move.mp3');
+    const winSound = new Audio('win.mp3');
+    const drawSound = new Audio('draw.mp3');
+
+    function playMoveSound() {
+        moveSound.play();
+    }
+
+    function playWinSound() {
+        winSound.play();
+    }
+
+    function playDrawSound() {
+        drawSound.play();
+    }
+
+    cells.forEach(cell => {
+        cell.addEventListener('click', playMoveSound);
+    });
+
+    function endGameWithSound(draw) {
+        stopTimer();
+        if (draw) {
+            playDrawSound();
+        } else {
+            playWinSound();
+        }
+        endGame(draw);
+    }
+
+    // Override the original endGame function with the new one that includes sound
+    window.endGame = endGameWithSound;
+}
+
+function updateLeaderboard() {
+    const leaderboard = document.getElementById('leaderboard');
+    leaderboard.innerHTML = `
+        <p>${playerXName.value || 'Player X'} Wins: ${scores['X']}</p>
+        <p>${playerOName.value || 'Player O'} Wins: ${scores['O']}</p>
+    `;
+}
+
+function initializeGameV2() {
+    initializeGame();
+    applyTheme();
+    startTimer();
+    addSoundEffects();
+}
+
+themeSelect.addEventListener('change', applyTheme);
+restartButton.addEventListener('click', () => {
+    restartGame();
+    updateLeaderboard();
+    startTimer();
+});
+
+initializeGameV2();
