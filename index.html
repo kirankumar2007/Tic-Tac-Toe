@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe v2</title>
+    <title>Tic Tac Toe v3</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Tic Tac Toe v2</h1>
+        <h1>Tic Tac Toe v3</h1>
         <div class="game-options">
             <div class="player-select">
                 <label for="playerX">Player X:</label>
@@ -16,6 +16,7 @@
                     <option value="human">Human</option>
                     <option value="ai">AI</option>
                 </select>
+                <input type="text" id="playerXName" placeholder="Player X Name" value="Player X">
             </div>
             <div class="player-select">
                 <label for="playerO">Player O:</label>
@@ -23,6 +24,7 @@
                     <option value="human">Human</option>
                     <option value="ai" selected>AI</option>
                 </select>
+                <input type="text" id="playerOName" placeholder="Player O Name" value="Player O">
             </div>
             <div class="ai-difficulty">
                 <label for="aiDifficulty">AI Difficulty:</label>
@@ -33,23 +35,25 @@
                 </select>
             </div>
         </div>
-        <div id="board" class="board">
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
-            <div class="cell" data-cell></div>
+        <div class="board-size-select">
+            <label for="boardSize">Board Size:</label>
+            <select id="boardSize">
+                <option value="3">3x3</option>
+                <option value="4">4x4</option>
+                <option value="5">5x5</option>
+            </select>
         </div>
+        <div id="board" class="board"></div>
         <div id="message"></div>
         <div class="score">
             <span>X: <span id="scoreX">0</span></span>
             <span>O: <span id="scoreO">0</span></span>
         </div>
-        <button id="restartButton">Restart Game</button>
+        <div class="buttons">
+            <button id="restartButton">Restart Game</button>
+            <button id="undoButton">Undo Move</button>
+        </div>
+        <div id="gameHistory"></div>
     </div>
     <script src="script.js"></script>
 </body>

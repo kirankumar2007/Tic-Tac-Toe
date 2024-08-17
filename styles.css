@@ -3,7 +3,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
 }
@@ -14,6 +14,8 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
 }
 
 h1 {
@@ -25,31 +27,38 @@ h1 {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .player-select, .ai-difficulty {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 10px;
 }
 
-select {
+select, input[type="text"] {
     margin-top: 5px;
     padding: 5px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.board-size-select {
+    margin-bottom: 20px;
 }
 
 .board {
     display: grid;
-    grid-template-columns: repeat(3, 100px);
     grid-gap: 5px;
     margin: 20px auto;
+    max-width: 400px;
 }
 
 .cell {
-    width: 100px;
-    height: 100px;
+    aspect-ratio: 1;
     background-color: #fff;
     border: 2px solid #333;
     font-size: 2em;
@@ -108,7 +117,14 @@ select {
     font-size: 1.2em;
 }
 
-#restartButton {
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+button {
     padding: 10px 20px;
     font-size: 1em;
     background-color: #4CAF50;
@@ -119,6 +135,34 @@ select {
     transition: background-color 0.3s ease;
 }
 
-#restartButton:hover {
+button:hover {
     background-color: #45a049;
+}
+
+#undoButton {
+    background-color: #3498db;
+}
+
+#undoButton:hover {
+    background-color: #2980b9;
+}
+
+#gameHistory {
+    margin-top: 20px;
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+@media (max-width: 600px) {
+    .game-options {
+        flex-direction: column;
+    }
+    
+    .player-select, .ai-difficulty {
+        width: 100%;
+    }
 }
