@@ -7,47 +7,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Tic Tac Toe</h1>
-    
-    <div class="game-settings">
-        <label for="playerX">Player X:</label>
-        <select id="playerX">
-            <option value="Human">Human</option>
-            <option value="AI">AI</option>
-        </select>
-        <label for="playerO">Player O:</label>
-        <select id="playerO">
-            <option value="Human">Human</option>
-            <option value="AI">AI</option>
-        </select>
-        <label for="difficulty">AI Difficulty:</label>
-        <select id="difficulty">
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-        </select>
-        <label for="theme">Select Theme:</label>
-        <select id="theme">
-            <option value="Light">Light</option>
-            <option value="Dark">Dark</option>
-        </select>
-        <label for="boardSize">Board Size:</label>
-        <select id="boardSize">
-            <option value="3x3">3x3</option>
-            <option value="4x4">4x4</option>
-            <option value="5x5">5x5</option>
-        </select>
+    <div class="container">
+        <header>
+            <button id="theme-toggle">Toggle Theme</button>
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <label for="size">Board Size:</label>
+            <select id="size">
+                <option value="3">3x3</option>
+                <option value="4">4x4</option>
+                <option value="5">5x5</option>
+            </select>
+        </header>
+        <div id="game-board" class="board"></div>
+        <p id="message"></p>
     </div>
-
-    <div id="board" class="board"></div>
-
-    <div class="game-info">
-        <button id="restartBtn">Restart Game</button>
-        <button id="undoBtn">Undo Move</button>
-        <p id="gameStatus">Player X's turn</p>
-        <p id="scoreboard">X: 0 | O: 0</p>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>

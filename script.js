@@ -1,93 +1,144 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const board = document.getElementById('board');
-    const gameStatus = document.getElementById('gameStatus');
-    const scoreboard = document.getElementById('scoreboard');
-    const restartBtn = document.getElementById('restartBtn');
-    const undoBtn = document.getElementById('undoBtn');
-    let boardSize = 3; // Default 3x3 board
-    let currentPlayer = 'X';
-    let gameActive = true;
-    let gameHistory = [];
-    let scores = { X: 0, O: 0 };
+let boardSize = 3;
+let currentPlayer = 'X';
+let gameBoard = [];
+let isGameOver = false;
+let difficulty = 'easy';
 
-    function initializeBoard() {
-        board.innerHTML = '';
-        board.style.gridTemplateColumns = `repeat(${boardSize}, 100px)`;
-        board.style.gridTemplateRows = `repeat(${boardSize}, 100px)`;
-        for (let i = 0; i < boardSize * boardSize; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.addEventListener('click', handleCellClick);
-            board.appendChild(cell);
-        }
-    }
+const themeToggleButton = document.getElementById('theme-toggle');
+const difficultySelect = document.getElementById('difficulty');
+const sizeSelect = document.getElementById('size');
+const boardElement = document.getElementById('game-board');
+const messageElement = document.getElementById('message');
 
-    function handleCellClick(event) {
-        const cell = event.target;
-        if (!gameActive || cell.textContent !== '') return;
-        
-        cell.textContent = currentPlayer;
-        cell.classList.add(currentPlayer.toLowerCase());
-        
-        gameHistory.push({ cellIndex: [...board.children].indexOf(cell), player: currentPlayer });
-
-        if (checkWin()) {
-            gameStatus.textContent = `Player ${currentPlayer} wins!`;
-            scores[currentPlayer]++;
-            scoreboard.textContent = `X: ${scores.X} | O: ${scores.O}`;
-            gameActive = false;
-        } else if (gameHistory.length === boardSize * boardSize) {
-            gameStatus.textContent = "It's a draw!";
-            gameActive = false;
-        } else {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            gameStatus.textContent = `Player ${currentPlayer}'s turn`;
-        }
-    }
-
-    function checkWin() {
-        const winPatterns = [];
-
-        // Rows
-        for (let i = 0; i < boardSize; i++) {
-            winPatterns.push([...Array(boardSize).keys()].map(j => i * boardSize + j));
-        }
-
-        // Columns
-        for (let i = 0; i < boardSize; i++) {
-            winPatterns.push([...Array(boardSize).keys()].map(j => i + j * boardSize));
-        }
-
-        // Diagonals
-        winPatterns.push([...Array(boardSize).keys()].map(i => i * (boardSize + 1)));
-        winPatterns.push([...Array(boardSize).keys()].map(i => (i + 1) * (boardSize - 1)));
-
-        return winPatterns.some(pattern =>
-            pattern.every(index => board.children[index].textContent === currentPlayer)
-        );
-    }
-
-    function restartGame() {
-        currentPlayer = 'X';
-        gameActive = true;
-        gameHistory = [];
-        gameStatus.textContent = `Player ${currentPlayer}'s turn`;
-        initializeBoard();
-    }
-
-    function undoMove() {
-        if (gameHistory.length === 0 || !gameActive) return;
-        const lastMove = gameHistory.pop();
-        const lastCell = board.children[lastMove.cellIndex];
-        lastCell.textContent = '';
-        lastCell.classList.remove('x', 'o');
-        currentPlayer = lastMove.player;
-        gameStatus.textContent = `Player ${currentPlayer}'s turn`;
-    }
-
-    restartBtn.addEventListener('click', restartGame);
-    undoBtn.addEventListener('click', undoMove);
-
-    // Initialize the game board
-    initializeBoard();
+themeToggleButton.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
 });
+
+difficultySelect.addEventListener('change', (event) => {
+    difficulty = event.target.value;
+});
+
+sizeSelect.addEventListener('change', (event) => {
+    boardSize = parseInt(event.target.value);
+    resetGame();
+});
+
+function initBoard() {
+    gameBoard = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+    boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+    boardElement.innerHTML = '';
+    for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.row = i;
+            cell.dataset.col = j;
+            cell.addEventListener('click', () => handleCellClick(i, j));
+            boardElement.appendChild(cell);
+        }
+    }
+}
+
+function handleCellClick(row, col) {
+    if (isGameOver || gameBoard[row][col]) return;
+
+    gameBoard[row][col] = currentPlayer;
+    updateBoard();
+
+    if (checkWin(row, col)) {
+        messageElement.textContent = `Player ${currentPlayer} wins!`;
+        isGameOver = true;
+        return;
+    }
+
+    if (checkDraw()) {
+        messageElement.textContent = 'It\'s a draw!';
+        isGameOver = true;
+        return;
+    }
+
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    if (currentPlayer === 'O' && !isGameOver) {
+        aiMove();
+    }
+}
+
+function updateBoard() {
+    const cells = boardElement.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        const row = cell.dataset.row;
+        const col = cell.dataset.col;
+        cell.textContent = gameBoard[row][col];
+    });
+}
+
+function checkWin(row, col) {
+    const win = (arr) => arr.every(cell => cell === currentPlayer);
+
+    const rowCheck = win(gameBoard[row]);
+    const colCheck = win(gameBoard.map(r => r[col]));
+    const diag1Check = win(gameBoard.map((r, i) => r[i]));
+    const diag2Check = win(gameBoard.map((r, i) => r[boardSize - 1 - i]));
+
+    return rowCheck || colCheck || diag1Check || diag2Check;
+}
+
+function checkDraw() {
+    return gameBoard.flat().every(cell => cell);
+}
+
+function aiMove() {
+    let move = getBestMove();
+    if (move) {
+        handleCellClick(move.row, move.col);
+    }
+}
+
+function getBestMove() {
+    let bestMove;
+    switch (difficulty) {
+        case 'easy':
+            bestMove = getRandomMove();
+            break;
+        case 'medium':
+            bestMove = getMediumMove();
+            break;
+        case 'hard':
+            bestMove = getHardMove();
+            break;
+    }
+    return bestMove;
+}
+
+function getRandomMove() {
+    const emptyCells = [];
+    for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+            if (!gameBoard[i][j]) {
+                emptyCells.push({ row: i, col: j });
+            }
+        }
+    }
+    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+}
+
+function getMediumMove() {
+    // Simple medium AI strategy
+    // TODO: Improve this
+    return getRandomMove();
+}
+
+function getHardMove() {
+    // Implement a more sophisticated AI
+    // TODO: Implement Minimax algorithm for better AI
+    return getRandomMove();
+}
+
+function resetGame() {
+    currentPlayer = 'X';
+    isGameOver = false;
+    messageElement.textContent = '';
+    initBoard();
+}
+
+initBoard();
