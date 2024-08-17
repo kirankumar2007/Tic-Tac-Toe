@@ -70,9 +70,26 @@
             <p>Player O Wins: <span id="playerOWins">0</span></p>
             <p>Draws: <span id="draws">0</span></p>
         </div>
+        <div class="chat-system">
+            <div id="chatBox" class="chat-box"></div>
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="avatar-selection">
+            <label for="avatarX">Player X Avatar:</label>
+            <input type="file" id="avatarXInput" onchange="uploadAvatar('X', this)">
+            <img id="avatarX" src="defaultX.png" alt="Player X Avatar">
+        </div>
+        <div class="avatar-selection">
+            <label for="avatarO">Player O Avatar:</label>
+            <input type="file" id="avatarOInput" onchange="uploadAvatar('O', this)">
+            <img id="avatarO" src="defaultO.png" alt="Player O Avatar">
+        </div>
+        <button onclick="exportGameHistory()">Export Game History</button>
         
 
     </div>
+    
     
     <script src="script.js"></script>
 </body>

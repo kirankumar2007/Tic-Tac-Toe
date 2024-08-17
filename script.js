@@ -403,6 +403,88 @@ function displayGameStats() {
     document.getElementById('playerOWins').textContent = gameStats.playerOWins;
     document.getElementById('draws').textContent = gameStats.draws;
 }
+// Chat system for multiplayer mode
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value;
+    socket.send(JSON.stringify({ type: 'chat', message: message, player: currentPlayer }));
+    displayChatMessage(`${getCurrentPlayerName()}: ${message}`);
+    messageInput.value = '';
+}
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    if (data.type === 'chat') {
+        displayChatMessage(`${data.player}: ${data.message}`);
+    } else if (data.type === 'move') {
+        makeMove(data.index);
+    }
+};
+
+function displayChatMessage(message) {
+    const chatBox = document.getElementById('chatBox');
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Customizable avatars
+const avatars = { X: 'defaultX.png', O: 'defaultO.png' };
+
+function setAvatar(player, avatarUrl) {
+    avatars[player] = avatarUrl;
+    document.getElementById(`avatar${player}`).src = avatarUrl;
+}
+
+// Move validation with confirmation
+function makeMove(index) {
+    if (criticalMove(index) && !confirm('Are you sure you want to make this move?')) return;
+    boardState[index] = currentPlayer;
+    moveHistory.push(index);
+    updateBoard();
+    if (checkWin()) {
+        endGame(false);
+    } else if (checkDraw()) {
+        endGame(true);
+    } else {
+        switchPlayer();
+    }
+    updateGameHistory(`${getCurrentPlayerName()} placed ${currentPlayer} at position ${index}`);
+}
+
+function criticalMove(index) {
+    return winningCombinations.some(combination => combination.includes(index));
+}
+
+// Game history export
+function exportGameHistory() {
+    const historyText = Array.from(gameHistory.children).map(entry => entry.textContent).join('\n');
+    const blob = new Blob([historyText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'game_history.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// In-game notifications
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.classList.add('notification');
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+socket.onopen = function() {
+    showNotification("Player joined the game");
+};
+
+socket.onclose = function() {
+    showNotification("Player left the game");
+};
 
 
 initializeGameV2();
